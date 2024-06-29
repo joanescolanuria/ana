@@ -70,10 +70,11 @@
       }
 
       console.log("Keypoints detectados:", pose.keypoints);
-      
+
+      // Buscar los puntos clave por nombre o parte
       const nose = pose.keypoints.find(point => point.name === 'nose');
-      const leftShoulder = pose.keypoints.find(point => point.part === 'left_shoulder');
-      const rightShoulder = pose.keypoints.find(point => point.part === 'right_shoulder');
+      const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder' || point.name === 'leftShoulder');
+      const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder' || point.name === 'rightShoulder');
 
       console.log("Nose:", nose);
       console.log("Left Shoulder:", leftShoulder);
