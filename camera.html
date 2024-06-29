@@ -16,6 +16,7 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
+      position: relative; /* Añadido para posicionar elementos relativos */
     }
     #video {
       width: 100vw; /* Ocupa todo el ancho disponible */
@@ -26,16 +27,10 @@
       width: 100vw; /* Ocupa todo el ancho disponible */
       height: 70vh; /* Ocupa el 70% de la altura */
       object-fit: cover; /* Ajusta el canvas para cubrir la altura especificada */
-      position: absolute;
+      position: absolute; /* Posición absoluta para superponer sobre el video */
       top: 0;
       left: 0;
-      z-index: 2;
-    }
-    .joya-img {
-      width: 30vw; /* Ancho del 30% de la pantalla */
-      cursor: pointer;
-      margin: 10px;
-      z-index: 3; /* Las imágenes de joyas deben estar sobre el canvas */
+      z-index: 2; /* Coloca el canvas encima del video */
     }
     .joyas-container {
       display: flex;
@@ -43,12 +38,18 @@
       position: absolute;
       bottom: 0;
       width: 100vw;
-      z-index: 4; /* Contenedor de joyas sobre todo */
+      z-index: 3; /* Contenedor de joyas sobre todo */
+    }
+    .joya-img {
+      width: 30vw; /* Ancho del 30% de la pantalla */
+      cursor: pointer;
+      margin: 10px;
+      z-index: 4; /* Las imágenes de joyas deben estar sobre el canvas */
     }
   </style>
 </head>
 <body>
-  <h1>devs</h1>
+  <h1>Superponer Joya en Cuello</h1>
   <video id="video" autoplay playsinline></video>
   <canvas id="canvas"></canvas>
   
