@@ -100,13 +100,12 @@
             const joyaPosition = getJoyaPosition(pose);
 
             if (joyaPosition && selectedJoya) {
-              joyaImage.src = selectedJoya;
-              const { leftShoulder, rightShoulder } = joyaPosition;
+              const { x, y, leftShoulder, rightShoulder } = joyaPosition;
               const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
               const scale = neckWidth / joyaImage.width;
 
               ctx.save();
-              ctx.translate(joyaPosition.x, joyaPosition.y);
+              ctx.translate(x, y);
               ctx.scale(scale, scale);
               ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
               ctx.restore();
