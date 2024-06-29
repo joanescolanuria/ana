@@ -71,7 +71,6 @@
 
       console.log("Keypoints detectados:", pose.keypoints);
 
-      // Buscar los puntos clave por nombre o parte
       const nose = pose.keypoints.find(point => point.name === 'nose');
       const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder' || point.name === 'leftShoulder');
       const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder' || point.name === 'rightShoulder');
@@ -117,8 +116,11 @@
               const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
               const scale = neckWidth / joyaImage.width;
 
+              // Ajuste adicional de la posición 'y' para elevar la joya
+              const yOffset = -joyaImage.height * scale * 0.5; // Ajusta este valor según sea necesario
+
               ctx.save();
-              ctx.translate(x, y);
+              ctx.translate(x, y + yOffset);
               ctx.scale(scale, scale);
               ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
               ctx.restore();
