@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Superponer Joya en Cuello</title>
+  <title>Dev</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
@@ -80,8 +80,10 @@
       console.log("Right Shoulder:", rightShoulder);
 
       if (nose && leftShoulder && rightShoulder) {
+        // Coordenadas del centro del cuello
         const x = nose.x;
         const y = (leftShoulder.y + rightShoulder.y) / 2;
+
         return { x, y, leftShoulder, rightShoulder };
       }
       return null;
@@ -100,41 +102,40 @@
       video.play();
 
       async function detectPose() {
-  try {
-    const poses = await detector.estimatePoses(video);
-    console.log("Poses detectadas: ", poses);
+        try {
+          const poses = await detector.estimatePoses(video);
+          console.log("Poses detectadas: ", poses);
 
-    // Limpiar el canvas antes de dibujar
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+          // Limpiar el canvas antes de dibujar
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (poses.length > 0) {
-      const pose = poses[0];
-      const joyaPosition = getJoyaPosition(pose);
-      console.log("Posición de la joya: ", joyaPosition);
+          if (poses.length > 0) {
+            const pose = poses[0];
+            const joyaPosition = getJoyaPosition(pose);
+            console.log("Posición de la joya: ", joyaPosition);
 
-      if (joyaPosition && selectedJoya) {
-        const { x, y, leftShoulder, rightShoulder } = joyaPosition;
-        const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
-        const scale = neckWidth / joyaImage.width;
+            if (joyaPosition && selectedJoya) {
+              const { x, y, leftShoulder, rightShoulder } = joyaPosition;
+              const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
+              const scale = neckWidth / joyaImage.width;
 
-        // Ajuste adicional de la posición 'y' para elevar la joya
-        const yOffset = -joyaImage.height * scale * 0.5; // Ajusta este valor según sea necesario
+              // Ajuste de posición vertical 'y' para colocar la joya en el cuello
+              const yOffset = -joyaImage.height * scale * 0.75; // Ajusta este valor según sea necesario
 
-        ctx.save();
-        ctx.translate(x, y + yOffset);
-        ctx.scale(scale, scale);
-        ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
-        ctx.restore();
-        console.log("Joya dibujada");
+              ctx.save();
+              ctx.translate(x, y + yOffset);
+              ctx.scale(scale, scale);
+              ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
+              ctx.restore();
+              console.log("Joya dibujada");
+            }
+          }
+        } catch (error) {
+          console.error('Error al detectar la pose: ', error);
+        }
+
+        requestAnimationFrame(detectPose);
       }
-    }
-  } catch (error) {
-    console.error('Error al detectar la pose: ', error);
-  }
-
-  requestAnimationFrame(detectPose);
-}
-
 
       detectPose();
     }
