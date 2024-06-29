@@ -56,16 +56,9 @@
       }
     }
 
-    async function loadBlazePose() {
-      try {
-        const model = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, {
-          runtime: 'tfjs',
-          modelType: 'full'
-        });
-        return model;
-      } catch (error) {
-        console.error('Error cargando el modelo BlazePose: ', error);
-      }
+    async function loadPoseDetector() {
+      const detectorConfig = { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER };
+      return await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, detectorConfig);
     }
 
     function getJoyaPosition(pose) {
@@ -87,10 +80,10 @@
 
     async function startApp() {
       await setupCamera();
-      const net = await loadBlazePose();
+      const detector = await loadPoseDetector();
 
-      if (!net) {
-        console.error('No se pudo cargar el modelo BlazePose');
+      if (!detector) {
+        console.error('No se pudo cargar el detector de poses');
         return;
       }
 
@@ -98,10 +91,7 @@
 
       async function detectPose() {
         try {
-          const poses = await net.estimatePoses(video, {
-            flipHorizontal: false,
-            decodingMethod: 'single-person'
-          });
+          const poses = await detector.estimatePoses(video);
 
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -110,6 +100,7 @@
             const joyaPosition = getJoyaPosition(pose);
 
             if (joyaPosition && selectedJoya) {
+              joyaImage.src = selectedJoya;
               const { leftShoulder, rightShoulder } = joyaPosition;
               const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
               const scale = neckWidth / joyaImage.width;
