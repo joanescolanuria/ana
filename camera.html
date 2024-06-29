@@ -2,53 +2,55 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Superponer Joya en Cuello</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
   <style>
-    video, canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      display: block;
-      margin: auto;
-      z-index: 1; /* Asegura que el video esté detrás del canvas */
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    #video {
+      width: 100vw; /* Ocupa todo el ancho disponible */
+      height: 70vh; /* Ocupa el 70% de la altura */
+      object-fit: cover; /* Ajusta la cámara para cubrir la altura especificada */
     }
     #canvas {
+      width: 100vw; /* Ocupa todo el ancho disponible */
+      height: 70vh; /* Ocupa el 70% de la altura */
+      object-fit: cover; /* Ajusta el canvas para cubrir la altura especificada */
       position: absolute;
       top: 0;
       left: 0;
-      display: block;
-      margin: auto;
-      z-index: 2; /* El canvas debe estar sobre el video */
+      z-index: 2;
     }
     .joya-img {
-      width: 100px;
+      width: 30vw; /* Ancho del 30% de la pantalla */
       cursor: pointer;
       margin: 10px;
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      z-index: 3; /* Asegura que las imágenes de joyas estén sobre el video */
-    }
-    .joya-img:nth-child(2) {
-      left: 130px; /* Ajusta la separación horizontal entre las imágenes */
+      z-index: 3; /* Las imágenes de joyas deben estar sobre el canvas */
     }
     .joyas-container {
-      text-align: center;
+      display: flex;
+      justify-content: center;
       position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 4; /* Asegura que el contenedor de joyas esté sobre el video */
+      bottom: 0;
+      width: 100vw;
+      z-index: 4; /* Contenedor de joyas sobre todo */
     }
   </style>
 </head>
 <body>
   <h1>Superponer Joya en Cuello</h1>
-  <video id="video" width="640" height="480" autoplay playsinline></video>
-  <canvas id="canvas" width="640" height="480"></canvas>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
   
   <div class="joyas-container">
     <img src="imagen.png" class="joya-img" id="joya1" alt="Joya 1">
