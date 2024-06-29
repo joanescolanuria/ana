@@ -69,9 +69,15 @@
         return null;
       }
 
+      console.log("Keypoints detectados:", pose.keypoints);
+      
       const nose = pose.keypoints.find(point => point.name === 'nose');
       const leftShoulder = pose.keypoints.find(point => point.part === 'left_shoulder');
       const rightShoulder = pose.keypoints.find(point => point.part === 'right_shoulder');
+
+      console.log("Nose:", nose);
+      console.log("Left Shoulder:", leftShoulder);
+      console.log("Right Shoulder:", rightShoulder);
 
       if (nose && leftShoulder && rightShoulder) {
         const x = nose.x;
