@@ -2,27 +2,46 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Dev</title>
+  <title>Superponer Joya en Cuello</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
   <style>
     video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
       display: block;
       margin: auto;
+      z-index: 1; /* Asegura que el video esté sobre el canvas */
+    }
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+      margin: auto;
+      z-index: 2; /* El canvas debe estar sobre el video */
     }
     .joya-img {
       width: 100px;
       cursor: pointer;
       margin: 10px;
+      position: absolute;
+      z-index: 3; /* Asegura que las imágenes de joyas estén sobre todo */
     }
     .joyas-container {
       text-align: center;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 4; /* Asegura que el contenedor de joyas esté sobre todo */
     }
   </style>
 </head>
 <body>
-  <h1>Dev</h1>
+  <h1>Dev.</h1>
   <video id="video" width="640" height="480" autoplay playsinline></video>
   <canvas id="canvas" width="640" height="480"></canvas>
   
@@ -120,7 +139,7 @@
               const scale = neckWidth / joyaImage.width;
 
               // Ajuste de posición vertical 'y' para colocar la joya en el cuello
-              const yOffset = -joyaImage.height * scale * 0.75; // Ajusta este valor según sea necesario
+              const yOffset = -joyaImage.height * scale * 0.7; // Ajusta este valor según sea necesario
 
               ctx.save();
               ctx.translate(x, y + yOffset);
