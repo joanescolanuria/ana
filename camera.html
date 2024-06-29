@@ -28,7 +28,12 @@
       cursor: pointer;
       margin: 10px;
       position: absolute;
+      bottom: 10px;
+      left: 10px;
       z-index: 3; /* Asegura que las imágenes de joyas estén sobre todo */
+    }
+    .joya-img:nth-child(2) {
+      left: 130px; /* Ajusta la separación entre las imágenes */
     }
     .joyas-container {
       text-align: center;
@@ -54,7 +59,8 @@
     let video = document.getElementById('video');
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
-    let joyaImage = new Image();
+    let joyaImage1 = new Image();
+    let joyaImage2 = new Image();
     let selectedJoya = '';
 
     async function setupCamera() {
@@ -136,15 +142,15 @@
             if (joyaPosition && selectedJoya) {
               const { x, y, leftShoulder, rightShoulder } = joyaPosition;
               const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
-              const scale = neckWidth / joyaImage.width;
+              const scale = neckWidth / joyaImage1.width;
 
               // Ajuste de posición vertical 'y' para colocar la joya en el cuello
-              const yOffset = -joyaImage.height * scale * 0.7; // Ajusta este valor según sea necesario
+              const yOffset = -joyaImage1.height * scale * 0.7; // Ajusta este valor según sea necesario
 
               ctx.save();
               ctx.translate(x, y + yOffset);
               ctx.scale(scale, scale);
-              ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
+              ctx.drawImage(selectedJoya === 'imagen.png' ? joyaImage1 : joyaImage2, -joyaImage1.width / 2, 0);
               ctx.restore();
               console.log("Joya dibujada");
             }
@@ -161,22 +167,30 @@
 
     document.getElementById('joya1').addEventListener('click', () => {
       selectedJoya = 'imagen.png';
-      joyaImage.src = selectedJoya;
+      joyaImage1.src = selectedJoya;
       console.log('Joya 1 seleccionada');
     });
 
     document.getElementById('joya2').addEventListener('click', () => {
       selectedJoya = 'imagen3.png';
-      joyaImage.src = selectedJoya;
+      joyaImage2.src = selectedJoya;
       console.log('Joya 2 seleccionada');
     });
 
-    joyaImage.onload = () => {
-      console.log('Imagen de joya cargada: ', selectedJoya);
+    joyaImage1.onload = () => {
+      console.log('Imagen de joya 1 cargada: ', selectedJoya);
     };
 
-    joyaImage.onerror = (error) => {
-      console.error('Error cargando la imagen de joya: ', error);
+    joyaImage1.onerror = (error) => {
+      console.error('Error cargando la imagen de joya 1: ', error);
+    };
+
+    joyaImage2.onload = () => {
+      console.log('Imagen de joya 2 cargada: ', selectedJoya);
+    };
+
+    joyaImage2.onerror = (error) => {
+      console.error('Error cargando la imagen de joya 2: ', error);
     };
 
     startApp();
