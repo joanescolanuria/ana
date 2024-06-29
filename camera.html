@@ -40,6 +40,7 @@
 
     async function setupCamera() {
       try {
+        console.log("Configurando cámara...");
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: 'user'
@@ -57,12 +58,14 @@
     }
 
     async function loadPoseDetector() {
+      console.log("Cargando detector de poses...");
       const detectorConfig = { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER };
       return await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, detectorConfig);
     }
 
     function getJoyaPosition(pose) {
       if (!pose || !pose.keypoints) {
+        console.log("Pose no válida");
         return null;
       }
 
@@ -79,6 +82,7 @@
     }
 
     async function startApp() {
+      console.log("Iniciando aplicación...");
       await setupCamera();
       const detector = await loadPoseDetector();
 
@@ -92,12 +96,14 @@
       async function detectPose() {
         try {
           const poses = await detector.estimatePoses(video);
+          console.log("Poses detectadas: ", poses);
 
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
           if (poses.length > 0) {
             const pose = poses[0];
             const joyaPosition = getJoyaPosition(pose);
+            console.log("Posición de la joya: ", joyaPosition);
 
             if (joyaPosition && selectedJoya) {
               const { x, y, leftShoulder, rightShoulder } = joyaPosition;
@@ -109,6 +115,7 @@
               ctx.scale(scale, scale);
               ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
               ctx.restore();
+              console.log("Joya dibujada");
             }
           }
         } catch (error) {
