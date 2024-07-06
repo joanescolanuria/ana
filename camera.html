@@ -23,6 +23,7 @@
         video {
             width: 100%;
             height: auto;
+            display: block; /* Ensure video is visible */
         }
         .overlay-container {
             display: flex;
@@ -99,10 +100,9 @@
                     const overlay = document.createElement('img');
                     overlay.src = selectedImage;
                     overlay.classList.add('overlay');
-                    // Insert overlay image below the video element
-                    video.parentNode.insertBefore(overlay, video);
-                    // Hide the video element
-                    video.style.display = 'none';
+                    // Replace video with overlay image
+                    video.parentNode.replaceChild(overlay, video);
+                    video = overlay; // Set overlay as new 'video' element
                 });
             });
 
