@@ -31,11 +31,13 @@
             margin-top: 10px;
         }
         .overlay-image {
-            width: 50px; /* Adjust the size of the overlay images */
+            width: 50px; /* Adjust the initial size of the overlay images */
             height: auto;
             margin: 0 10px;
             cursor: pointer;
             opacity: 0.5; /* Make images slightly transparent */
+            position: relative;
+            user-select: none; /* Prevent image dragging on some devices */
         }
         .overlay-image.active {
             opacity: 1; /* Highlight selected image */
@@ -72,6 +74,8 @@
     <script>
         let video;
         let currentOverlay = null;
+        let initialTouchDistance = 0;
+        let initialWidth = 0;
 
         // Function to start video stream
         function startVideoStream() {
@@ -119,6 +123,10 @@
                     // Append new overlay
                     document.querySelector('.camera-container').appendChild(overlay);
                     currentOverlay = overlay;
+
+                    // Attach touch event listeners for resizing
+                    overlay.addEventListener('touchstart', handleTouchStart, false);
+                    overlay.addEventListener('touchmove', handleTouchMove, false);
                 });
             });
 
@@ -146,6 +154,30 @@
                 }
             });
         };
+
+        // Function to handle touch start event
+        function handleTouchStart(event) {
+            if (event.touches.length === 2) {
+                initialTouchDistance = Math.hypot(
+                    event.touches[0].pageX - event.touches[1].pageX,
+                    event.touches[0].pageY - event.touches[1].pageY
+                );
+                initialWidth = currentOverlay.width;
+            }
+        }
+
+        // Function to handle touch move event
+        function handleTouchMove(event) {
+            if (event.touches.length === 2 && currentOverlay) {
+                const currentTouchDistance = Math.hypot(
+                    event.touches[0].pageX - event.touches[1].pageX,
+                    event.touches[0].pageY - event.touches[1].pageY
+                );
+
+                const scaleFactor = currentTouchDistance / initialTouchDistance;
+                currentOverlay.style.width = `${initialWidth * scaleFactor}px`;
+            }
+        }
     </script>
 </body>
 </html>
