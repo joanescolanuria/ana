@@ -17,31 +17,55 @@
 <body>
     <h1>Tomar una Foto</h1>
     <video id="video" autoplay></video>
+    <br>
     <button id="snap">Tomar Foto</button>
+    <button id="switchCamera">Cambiar Cámara</button>
     <canvas id="canvas"></canvas>
     <script>
-        // Acceder a la cámara
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const snapButton = document.getElementById('snap');
-        const context = canvas.getContext('2d');
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let snapButton = document.getElementById('snap');
+        let switchButton = document.getElementById('switchCamera');
+        let currentStream = null;
+        let useFrontCamera = true;
 
-        // Pedir permiso para usar la cámara
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                video.srcObject = stream;
-                video.play();
-            })
-            .catch((err) => {
-                console.error(`Error al acceder a la cámara: ${err}`);
-            });
+        // Función para iniciar la cámara
+        function startCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            const constraints = {
+                video: {
+                    facingMode: useFrontCamera ? 'user' : 'environment'
+                }
+            };
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then((stream) => {
+                    currentStream = stream;
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch((err) => {
+                    console.error(`Error al acceder a la cámara: ${err}`);
+                });
+        }
+
+        // Pedir permiso para usar la cámara y mostrar el stream
+        startCamera();
 
         // Tomar foto
         snapButton.addEventListener('click', () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             // Aquí puedes hacer algo con la foto, como mostrarla o subirla a un servidor
+        });
+
+        // Cambiar entre cámara delantera y trasera
+        switchButton.addEventListener('click', () => {
+            useFrontCamera = !useFrontCamera;
+            startCamera();
         });
     </script>
 </body>
