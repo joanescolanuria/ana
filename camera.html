@@ -75,7 +75,8 @@
     <script>
         let video;
         let currentOverlay = null;
-        let initialTouchDistance = 0;
+        let initialTouchX = 0;
+        let initialTouchY = 0;
         let initialWidth = 0;
         let currentStream = null;
         let currentFacingMode = 'environment'; // Default to rear camera
@@ -182,44 +183,34 @@
         // Function to handle touch start event
         function handleTouchStart(event) {
             event.preventDefault();
-            if (event.touches.length === 1 && currentOverlay) {
-                const touch = event.touches[0];
-                currentOverlay.dataset.initialX = touch.clientX - currentOverlay.offsetLeft;
-                currentOverlay.dataset.initialY = touch.clientY - currentOverlay.offsetTop;
-            } else if (event.touches.length === 2 && currentOverlay) {
-                initialTouchDistance = Math.hypot(
-                    event.touches[0].pageX - event.touches[1].pageX,
-                    event.touches[0].pageY - event.touches[1].pageY
-                );
-                initialWidth = currentOverlay.width;
-            }
+            const touch = event.touches[0];
+            initialTouchX = touch.clientX;
+            initialTouchY = touch.clientY;
+            initialWidth = parseInt(currentOverlay.style.width) || currentOverlay.width;
         }
 
         // Function to handle touch move event
         function handleTouchMove(event) {
             event.preventDefault();
-            if (event.touches.length === 1 && currentOverlay) {
-                const touch = event.touches[0];
-                currentOverlay.style.left = `${touch.clientX - currentOverlay.dataset.initialX}px`;
-                currentOverlay.style.top = `${touch.clientY - currentOverlay.dataset.initialY}px`;
-            } else if (event.touches.length === 2 && currentOverlay) {
-                const currentTouchDistance = Math.hypot(
-                    event.touches[0].pageX - event.touches[1].pageX,
-                    event.touches[0].pageY - event.touches[1].pageY
-                );
+            const touch = event.touches[0];
+            const deltaX = touch.clientX - initialTouchX;
+            const deltaY = touch.clientY - initialTouchY;
 
-                const scaleFactor = currentTouchDistance / initialTouchDistance;
-                currentOverlay.style.width = `${initialWidth * scaleFactor}px`;
-            }
+            // Move the overlay image
+            currentOverlay.style.left = `${currentOverlay.offsetLeft + deltaX}px`;
+            currentOverlay.style.top = `${currentOverlay.offsetTop + deltaY}px`;
+
+            // Resize the overlay image
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const scaleFactor = 1 + distance / 100; // Adjust this scale factor based on sensitivity
+            currentOverlay.style.width = `${initialWidth * scaleFactor}px`;
         }
 
         // Function to handle touch end event
         function handleTouchEnd(event) {
             event.preventDefault();
-            if (currentOverlay) {
-                delete currentOverlay.dataset.initialX;
-                delete currentOverlay.dataset.initialY;
-            }
+            initialTouchX = 0;
+            initialTouchY = 0;
         }
     </script>
 </body>
