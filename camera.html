@@ -69,6 +69,7 @@
         </div>
         <div class="controls">
             <button id="takePhoto">Tomar Foto</button>
+            <button id="switchCamera">Cambiar Cámara</button>
         </div>
     </div>
     <script>
@@ -76,19 +77,36 @@
         let currentOverlay = null;
         let initialTouchDistance = 0;
         let initialWidth = 0;
+        let currentStream = null;
+        let currentFacingMode = 'environment'; // Default to rear camera
 
         // Function to start video stream
         function startVideoStream() {
             if (navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
+                const constraints = {
+                    video: { facingMode: currentFacingMode }
+                };
+
+                navigator.mediaDevices.getUserMedia(constraints)
                     .then(function (stream) {
                         video = document.getElementById('video');
                         video.srcObject = stream;
+                        currentStream = stream;
                     })
                     .catch(function (error) {
                         console.error("Error accessing the camera: ", error);
                     });
             }
+        }
+
+        // Function to switch camera (front or rear)
+        function switchCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            startVideoStream();
         }
 
         // Function to stop video stream
@@ -124,9 +142,10 @@
                     document.querySelector('.camera-container').appendChild(overlay);
                     currentOverlay = overlay;
 
-                    // Attach touch event listeners for resizing
+                    // Attach touch event listeners for resizing and dragging
                     overlay.addEventListener('touchstart', handleTouchStart, false);
                     overlay.addEventListener('touchmove', handleTouchMove, false);
+                    overlay.addEventListener('touchend', handleTouchEnd, false);
                 });
             });
 
@@ -153,11 +172,21 @@
                     link.click();
                 }
             });
+
+            // Handle click on "Cambiar Cámara" button
+            document.getElementById('switchCamera').addEventListener('click', function() {
+                switchCamera();
+            });
         };
 
         // Function to handle touch start event
         function handleTouchStart(event) {
-            if (event.touches.length === 2) {
+            event.preventDefault();
+            if (event.touches.length === 1 && currentOverlay) {
+                const touch = event.touches[0];
+                currentOverlay.dataset.initialX = touch.clientX - currentOverlay.offsetLeft;
+                currentOverlay.dataset.initialY = touch.clientY - currentOverlay.offsetTop;
+            } else if (event.touches.length === 2 && currentOverlay) {
                 initialTouchDistance = Math.hypot(
                     event.touches[0].pageX - event.touches[1].pageX,
                     event.touches[0].pageY - event.touches[1].pageY
@@ -168,7 +197,12 @@
 
         // Function to handle touch move event
         function handleTouchMove(event) {
-            if (event.touches.length === 2 && currentOverlay) {
+            event.preventDefault();
+            if (event.touches.length === 1 && currentOverlay) {
+                const touch = event.touches[0];
+                currentOverlay.style.left = `${touch.clientX - currentOverlay.dataset.initialX}px`;
+                currentOverlay.style.top = `${touch.clientY - currentOverlay.dataset.initialY}px`;
+            } else if (event.touches.length === 2 && currentOverlay) {
                 const currentTouchDistance = Math.hypot(
                     event.touches[0].pageX - event.touches[1].pageX,
                     event.touches[0].pageY - event.touches[1].pageY
@@ -176,6 +210,15 @@
 
                 const scaleFactor = currentTouchDistance / initialTouchDistance;
                 currentOverlay.style.width = `${initialWidth * scaleFactor}px`;
+            }
+        }
+
+        // Function to handle touch end event
+        function handleTouchEnd(event) {
+            event.preventDefault();
+            if (currentOverlay) {
+                delete currentOverlay.dataset.initialX;
+                delete currentOverlay.dataset.initialY;
             }
         }
     </script>
