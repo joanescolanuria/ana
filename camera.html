@@ -38,6 +38,17 @@
             margin: 0 10px;
             cursor: pointer;
         }
+        .selected-overlay {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .selected-overlay img {
+            width: 400px; /* Adjust the size of the selected overlay image */
+            height: auto;
+            border: 2px solid red;
+        }
         .controls {
             position: absolute;
             bottom: 10px;
@@ -55,10 +66,8 @@
 <body>
     <div class="camera-container">
         <video id="video" autoplay playsinline></video>
-        <div class="overlay">
-            <img src="imagen.png" alt="Overlay Image" class="overlay-image" data-image="imagen.png">
-            <img src="imagen2.png" alt="Overlay Image" class="overlay-image" data-image="imagen2.png">
-        </div>
+        <div class="overlay"></div>
+        <div class="selected-overlay"></div>
         <div class="controls">
             <button id="takePhoto">Tomar Foto</button>
         </div>
@@ -93,10 +102,10 @@
         };
 
         // Handle click on overlay images
-        document.querySelectorAll('.overlay-image').forEach(img => {
+        document.querySelectorAll('.overlay img').forEach(img => {
             img.addEventListener('click', function() {
-                document.querySelectorAll('.overlay-image').forEach(img => img.style.border = 'none');
-                this.style.border = '2px solid red'; // Highlight selected image
+                const selectedImage = this.getAttribute('src');
+                document.querySelector('.selected-overlay').innerHTML = `<img src="${selectedImage}" alt="Selected Overlay">`;
             });
         });
 
@@ -108,9 +117,8 @@
                 canvas.height = video.videoHeight;
                 canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                const imgOverlay = document.querySelector('.overlay-image[style*="border"]');
-                if (imgOverlay) {
-                    const selectedImage = imgOverlay.getAttribute('data-image');
+                const selectedImage = document.querySelector('.selected-overlay img');
+                if (selectedImage) {
                     const link = document.createElement('a');
                     link.href = canvas.toDataURL('image/png');
                     link.download = 'photo.png';
