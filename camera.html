@@ -17,19 +17,17 @@
             width: 100%;
             max-width: 640px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
         }
         video {
             width: 100%;
             height: auto;
         }
         .overlay-container {
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
             display: flex;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.5); /* Semi-transparent background */
-            padding: 10px 0; /* Padding for better visibility */
+            margin-top: 10px;
         }
         .overlay-image {
             width: 50px; /* Adjust the size of the overlay images */
@@ -42,10 +40,7 @@
             opacity: 1; /* Highlight selected image */
         }
         .controls {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            margin-top: 10px;
         }
         .controls button {
             padding: 10px;
@@ -56,12 +51,12 @@
 <body>
     <div class="camera-container">
         <video id="video" autoplay playsinline></video>
+        <div class="controls">
+            <button id="takePhoto">Tomar Foto</button>
+        </div>
         <div class="overlay-container">
             <img src="imagen.png" alt="Overlay Image 1" class="overlay-image" data-image="imagen.png">
             <img src="imagen2.png" alt="Overlay Image 2" class="overlay-image" data-image="imagen2.png">
-        </div>
-        <div class="controls">
-            <button id="takePhoto">Tomar Foto</button>
         </div>
     </div>
     <script>
