@@ -23,90 +23,7 @@
         }
         .overlay {
             position: absolute;
-            top: 50px; /* Adjust the position of the overlay */<!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Camera with Overlay</title>
-                <style>
-                    body {
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 100vh;
-                        margin: 0;
-                    }
-                    .camera-container {
-                        position: relative;
-                        width: 100%;
-                        max-width: 640px;
-                    }
-                    video {
-                        width: 100%;
-                        height: auto;
-                    }
-                    .overlay {
-                        position: absolute;
-                        top: 50px; /* Adjust the position of the overlay */
-                        left: 50px; /* Adjust the position of the overlay */
-                        width: 100px; /* Adjust the size of the overlay */
-                        height: auto;
-                    }
-                    .controls {
-                        position: absolute;
-                        bottom: 10px;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        display: flex;
-                        gap: 10px;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="camera-container">
-                    <video id="video" autoplay playsinline></video>
-                    <img src="imagen.png" alt="Overlay Image" class="overlay">
-                    <div class="controls">
-                        <button id="switchCamera">Switch Camera</button>
-                    </div>
-                </div>
-                <script>
-                    const video = document.getElementById('video');
-                    let currentFacingMode = 'environment'; // Default to back camera
-
-                    function startCamera(facingMode) {
-                        const constraints = {
-                            video: {
-                                facingMode: facingMode
-                            }
-                        };
-
-                        navigator.mediaDevices.getUserMedia(constraints)
-                            .then(function(stream) {
-                                video.srcObject = stream;
-                            })
-                            .catch(function(error) {
-                                console.error("Error accessing the camera: ", error);
-                            });
-                    }
-
-                    document.getElementById('switchCamera').addEventListener('click', function() {
-                        if (currentFacingMode === 'user') {
-                            currentFacingMode = 'environment'; // Switch to back camera
-                        } else {
-                            currentFacingMode = 'user'; // Switch to front camera
-                        }
-                        video.srcObject.getTracks().forEach(track => track.stop()); // Stop current stream
-                        startCamera(currentFacingMode); // Start new stream
-                    });
-
-                    // Start with default camera (back camera)
-                    startCamera(currentFacingMode);
-                </script>
-            </body>
-            </html>
-
+            top: 50px; /* Adjust the position of the overlay */
             left: 50px; /* Adjust the position of the overlay */
             width: 100px; /* Adjust the size of the overlay */
             height: auto;
@@ -130,37 +47,36 @@
         </div>
     </div>
     <script>
-        const video = document.getElementById('video');
-        let currentFacingMode = 'environment'; // Default to back camera
+        // Access the camera and display the video stream
+        let video; // Declare video variable in the global scope
 
-        function startCamera(facingMode) {
-            const constraints = {
-                video: {
-                    facingMode: facingMode
-                }
-            };
-
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then(function(stream) {
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video = document.getElementById('video'); // Assign video element
                     video.srcObject = stream;
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                     console.error("Error accessing the camera: ", error);
                 });
         }
 
+        // Switch camera function
         document.getElementById('switchCamera').addEventListener('click', function() {
-            if (currentFacingMode === 'user') {
-                currentFacingMode = 'environment'; // Switch to back camera
-            } else {
-                currentFacingMode = 'user'; // Switch to front camera
-            }
-            video.srcObject.getTracks().forEach(track => track.stop()); // Stop current stream
-            startCamera(currentFacingMode); // Start new stream
-        });
+            if (video) {
+                const tracks = video.srcObject.getTracks(); // Get current tracks
+                tracks.forEach(track => track.stop()); // Stop all tracks
 
-        // Start with default camera (back camera)
-        startCamera(currentFacingMode);
+                const facingMode = (tracks[0].getSettings().facingMode === 'user') ? 'environment' : 'user';
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
+                    .then(function(stream) {
+                        video.srcObject = stream;
+                    })
+                    .catch(function(error) {
+                        console.error("Error switching camera: ", error);
+                    });
+            }
+        });
     </script>
 </body>
 </html>
