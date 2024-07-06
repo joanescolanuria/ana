@@ -47,21 +47,31 @@
             padding: 10px;
             cursor: pointer;
         }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Ensure clicks go through to video */
+        }
     </style>
 </head>
 <body>
     <div class="camera-container">
         <video id="video" autoplay playsinline></video>
-        <div class="controls">
-            <button id="takePhoto">Tomar Foto</button>
-        </div>
+        <div class="overlay"></div>
         <div class="overlay-container">
             <img src="imagen.png" alt="Overlay Image 1" class="overlay-image" data-image="imagen.png">
             <img src="imagen2.png" alt="Overlay Image 2" class="overlay-image" data-image="imagen2.png">
         </div>
+        <div class="controls">
+            <button id="takePhoto">Tomar Foto</button>
+        </div>
     </div>
     <script>
         let video;
+        let currentOverlay = null;
 
         // Function to start video stream
         function startVideoStream() {
@@ -100,9 +110,15 @@
                     const overlay = document.createElement('img');
                     overlay.src = selectedImage;
                     overlay.classList.add('overlay');
-                    // Replace video with overlay image
-                    video.parentNode.replaceChild(overlay, video);
-                    video = overlay; // Set overlay as new 'video' element
+                    
+                    // Remove previous overlay if exists
+                    if (currentOverlay) {
+                        currentOverlay.parentNode.removeChild(currentOverlay);
+                    }
+
+                    // Append new overlay
+                    document.querySelector('.camera-container').appendChild(overlay);
+                    currentOverlay = overlay;
                 });
             });
 
@@ -112,8 +128,17 @@
                     const canvas = document.createElement('canvas');
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const context = canvas.getContext('2d');
 
+                    // Draw video frame
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // Draw overlay if exists
+                    if (currentOverlay) {
+                        context.drawImage(currentOverlay, 0, 0, canvas.width, canvas.height);
+                    }
+
+                    // Create download link
                     const link = document.createElement('a');
                     link.href = canvas.toDataURL('image/png');
                     link.download = 'photo.png';
