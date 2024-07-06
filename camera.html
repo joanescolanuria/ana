@@ -71,6 +71,7 @@
         </div>
         <div class="controls">
             <button id="takePhoto">Tomar Foto</button>
+            <p>holi</p>
             <button id="switchCamera">Cambiar Cámara</button>
         </div>
     </div>
@@ -90,6 +91,18 @@
 
             await loadFaceLandmarksModel();
             startVideoStream();
+
+            // Attach click event to overlay images after the video stream has started
+            document.querySelectorAll('.overlay-image').forEach(img => {
+                img.addEventListener('click', function() {
+                    // Remove active class from all images
+                    document.querySelectorAll('.overlay-image').forEach(img => img.classList.remove('active'));
+                    // Add active class to the clicked image
+                    this.classList.add('active');
+                    // Update overlayImage src
+                    overlayImage.src = this.getAttribute('data-image');
+                });
+            });
         };
 
         // Función para cargar el modelo de detección de puntos de referencia faciales
@@ -162,18 +175,6 @@
             // Continuar detectando los puntos de referencia en cada cuadro de video
             requestAnimationFrame(detectFaceLandmarks);
         }
-
-        // Manejar clic en imágenes superpuestas para cambiar la imagen mostrada
-        document.querySelectorAll('.overlay-image').forEach(img => {
-            img.addEventListener('click', function() {
-                // Remove active class from all images
-                document.querySelectorAll('.overlay-image').forEach(img => img.classList.remove('active'));
-                // Add active class to the clicked image
-                this.classList.add('active');
-                // Update overlayImage src
-                overlayImage.src = this.getAttribute('data-image');
-            });
-        });
 
         // Manejar clic en "Tomar Foto" para guardar la imagen
         document.getElementById('takePhoto').addEventListener('click', function() {
