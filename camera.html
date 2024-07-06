@@ -28,6 +28,8 @@
             width: 100%;
             display: flex;
             justify-content: center;
+            background: rgba(255, 255, 255, 0.5); /* Semi-transparent background */
+            padding: 10px 0; /* Padding for better visibility */
         }
         .overlay-image {
             width: 50px; /* Adjust the size of the overlay images */
@@ -59,7 +61,7 @@
             <img src="imagen2.png" alt="Overlay Image 2" class="overlay-image" data-image="imagen2.png">
         </div>
         <div class="controls">
-            <button id="takePhoto">Tomaaaar Foto</button>
+            <button id="takePhoto">Tomar Foto</button>
         </div>
     </div>
     <script>
@@ -102,26 +104,28 @@
                     const overlay = document.createElement('img');
                     overlay.src = selectedImage;
                     overlay.classList.add('overlay');
-                    video.parentNode.replaceChild(overlay, video);
-                    video = overlay;
+                    // Insert overlay image below the video element
+                    video.parentNode.insertBefore(overlay, video);
+                    // Hide the video element
+                    video.style.display = 'none';
                 });
             });
+
+            // Handle click on "Tomar Foto" button
+            document.getElementById('takePhoto').addEventListener('click', function() {
+                if (video) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/png');
+                    link.download = 'photo.png';
+                    link.click();
+                }
+            });
         };
-
-        // Handle click on "Tomar Foto" button
-        document.getElementById('takePhoto').addEventListener('click', function() {
-            if (video) {
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                const link = document.createElement('a');
-                link.href = canvas.toDataURL('image/png');
-                link.download = 'photo.png';
-                link.click();
-            }
-        });
     </script>
 </body>
 </html>
