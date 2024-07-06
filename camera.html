@@ -43,14 +43,32 @@
         <video id="video" autoplay playsinline></video>
         <img src="imagen.png" alt="Overlay Image" class="overlay">
         <div class="controls">
-            <button id="switchCamera">Cambia la camara delantera/trasera</button>
+            <button id="switchCamera">Cambia la cámara delantera/trasera</button>
         </div>
     </div>
     <script>
         let video; // Declare video variable in the global scope
+        let currentFacingMode = 'user'; // Track current facing mode
+
+        function stopVideoStream() {
+            if (video && video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function startVideoStream(facingMode) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                    currentFacingMode = facingMode;
+                })
+                .catch(function (error) {
+                    console.error("Error accessing the camera: ", error);
+                });
+        }
 
         if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } })
                 .then(function (stream) {
                     video = document.getElementById('video'); // Assign video element
                     video.srcObject = stream;
@@ -61,19 +79,9 @@
         }
 
         document.getElementById('switchCamera').addEventListener('click', function() {
-            if (video) {
-                const tracks = video.srcObject.getTracks(); // Get current tracks
-                tracks.forEach(track => track.stop()); // Stop all tracks
-
-                const facingMode = (tracks[0].getSettings().facingMode === 'user') ? 'environment' : 'user';
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
-                    .then(function(stream) {
-                        video.srcObject = stream;
-                    })
-                    .catch(function(error) {
-                        console.error("Error switching camera: ", error);
-                    });
-            }
+            stopVideoStream();
+            const newFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+            startVideoStream(newFacingMode);
         });
 
     </script>
