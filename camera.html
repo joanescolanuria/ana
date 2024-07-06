@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso a la Cámara</title>
+    <style>
+        #video {
+            width: 100%;
+            max-width: 600px;
+        }
+        #canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tomar una Foto</h1>
+    <video id="video" autoplay></video>
+    <button id="snap">Tomar Foto</button>
+    <canvas id="canvas"></canvas>
+    <script>
+        // Acceder a la cámara
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snapButton = document.getElementById('snap');
+        const context = canvas.getContext('2d');
+
+        // Pedir permiso para usar la cámara
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch((err) => {
+                console.error(`Error al acceder a la cámara: ${err}`);
+            });
+
+        // Tomar foto
+        snapButton.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Aquí puedes hacer algo con la foto, como mostrarla o subirla a un servidor
+        });
+    </script>
+</body>
+</html>
