@@ -25,7 +25,7 @@
             position: absolute;
             top: 50px; /* Adjust the position of the overlay */
             left: 50px; /* Adjust the position of the overlay */
-            width: 200px; /* Adjust the size of the overlay */
+            width: 300px; /* Adjust the size of the overlay */
             height: auto;
         }
         .controls {
@@ -43,11 +43,10 @@
         <video id="video" autoplay playsinline></video>
         <img src="imagen.png" alt="Overlay Image" class="overlay">
         <div class="controls">
-            <button id="switchCamera">Switch Camera</button>
+            <button id="switchCamera">Cambia la camara delantera/trasera</button>
         </div>
     </div>
     <script>
-        // Access the camera and display the video stream
         let video; // Declare video variable in the global scope
 
         if (navigator.mediaDevices.getUserMedia) {
