@@ -22,40 +22,28 @@
             width: 100%;
             height: auto;
         }
-        .overlay {
+        .overlay-container {
             position: absolute;
-            top: 0;
-            left: 0;
+            bottom: 10px;
             width: 100%;
-            height: 100%;
             display: flex;
             justify-content: center;
-            align-items: center;
         }
-        .overlay img {
-            width: 100px; /* Adjust the size of the overlay images */
+        .overlay-image {
+            width: 50px; /* Adjust the size of the overlay images */
             height: auto;
             margin: 0 10px;
             cursor: pointer;
+            opacity: 0.5; /* Make images slightly transparent */
         }
-        .selected-overlay {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .selected-overlay img {
-            width: 200px; /* Adjust the size of the selected overlay image */
-            height: auto;
-            border: 2px solid red;
+        .overlay-image.active {
+            opacity: 1; /* Highlight selected image */
         }
         .controls {
             position: absolute;
             bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
         }
         .controls button {
             padding: 10px;
@@ -66,8 +54,10 @@
 <body>
     <div class="camera-container">
         <video id="video" autoplay playsinline></video>
-        <div class="overlay"></div>
-        <div class="selected-overlay"></div>
+        <div class="overlay-container">
+            <img src="imagen.png" alt="Overlay Image 1" class="overlay-image" data-image="imagen.png">
+            <img src="imagen2.png" alt="Overlay Image 2" class="overlay-image" data-image="imagen2.png">
+        </div>
         <div class="controls">
             <button id="takePhoto">Tomar Foto</button>
         </div>
@@ -99,15 +89,24 @@
         // Initialize video stream when the page loads
         window.onload = function () {
             startVideoStream();
-        };
 
-        // Handle click on overlay images
-        document.querySelectorAll('.overlay img').forEach(img => {
-            img.addEventListener('click', function() {
-                const selectedImage = this.getAttribute('src');
-                document.querySelector('.selected-overlay').innerHTML = `<img src="${selectedImage}" alt="Selected Overlay">`;
+            // Attach click event to overlay images
+            document.querySelectorAll('.overlay-image').forEach(img => {
+                img.addEventListener('click', function() {
+                    // Remove active class from all images
+                    document.querySelectorAll('.overlay-image').forEach(img => img.classList.remove('active'));
+                    // Add active class to the clicked image
+                    this.classList.add('active');
+                    // Change overlay on camera feed
+                    const selectedImage = this.getAttribute('data-image');
+                    const overlay = document.createElement('img');
+                    overlay.src = selectedImage;
+                    overlay.classList.add('overlay');
+                    video.parentNode.replaceChild(overlay, video);
+                    video = overlay;
+                });
             });
-        });
+        };
 
         // Handle click on "Tomar Foto" button
         document.getElementById('takePhoto').addEventListener('click', function() {
@@ -117,15 +116,10 @@
                 canvas.height = video.videoHeight;
                 canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                const selectedImage = document.querySelector('.selected-overlay img');
-                if (selectedImage) {
-                    const link = document.createElement('a');
-                    link.href = canvas.toDataURL('image/png');
-                    link.download = 'photo.png';
-                    link.click();
-                } else {
-                    alert('Selecciona una imagen para superponer en la foto.');
-                }
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'photo.png';
+                link.click();
             }
         });
     </script>
