@@ -1,220 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera with Overlay</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden; /* Para evitar scrollbars */
-        }
-        .camera-container {
-            position: relative;
-            width: 100%;
-            max-width: 640px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-        }
-        video {
-            width: 100%;
-            height: auto;
-            display: block; /* Asegurar que el video sea visible */
-        }
-        .overlay-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        .overlay-image {
-            width: 50px; /* Ajustar tamaño de las imágenes superpuestas */
-            height: auto;
-            margin: 0 10px;
-            cursor: pointer;
-            opacity: 0.5; /* Hacer las imágenes ligeramente transparentes */
-        }
-        .overlay-image.active {
-            opacity: 1; /* Resaltar la imagen seleccionada */
-        }
-        .controls {
-            margin-top: 10px;
-        }
-        .controls button {
-            padding: 10px;
-            cursor: pointer;
-        }
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Asegurar que los clics pasen al video */
-            display: none; /* Ocultar la imagen superpuesta inicialmente */
-            object-fit: contain; /* Ajustar tamaño sin distorsión */
-            z-index: 2; /* Asegurar que esté sobre el video */
-        }
-    </style>
+  <title>Superponer Joya en Cuello</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazepose"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
 </head>
 <body>
-    <div class="camera-container">
-        <video id="video" autoplay playsinline></video>
-        <img id="overlayImage" class="overlay" src="" alt="Overlay Image">
-        <div class="overlay-container">
-            <img src="imagen.png" alt="Overlay Image 1" class="overlay-image" data-image="imagen.png">
-            <img src="imagen3.png" alt="Overlay Image 2" class="overlay-image" data-image="imagen3.png">
-        </div>
-        <div class="controls">
-            <button id="takePhoto">Tomar Foto</button>
-            <button id="switchCamera">Cambiar Cámara</button>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
-    <script>
-        let video;
-        let overlayImage;
-        let currentStream = null;
-        let faceLandmarksModel;
-        let currentOverlayWidth = 100; // Ancho inicial de la imagen superpuesta
+  <h1>Superponer Joya en Cuello</h1>
+  <select id="joya-selector">
+    <option value="imagen1.png">Joya 1</option>
+    <option value="imagen2.png">Joya 2</option>
+  </select>
+  <button id="start-button">Iniciar</button>
+  <video id="video" width="640" height="480" autoplay></video>
+  <canvas id="canvas" width="640" height="480"></canvas>
 
-        // Cargar el modelo de detección de puntos de referencia faciales al cargar la página
-        window.onload = async function () {
-            video = document.getElementById('video');
-            overlayImage = document.getElementById('overlayImage');
+  <script>
+    let video = document.getElementById('video');
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    let joyaImage = new Image();
 
-            await loadFaceLandmarksModel();
-            startVideoStream();
+    async function setupCamera() {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true
+      });
+      video.srcObject = stream;
 
-            // Attach click event to overlay images after the video stream has started
-            document.querySelectorAll('.overlay-image').forEach(img => {
-                img.addEventListener('click', function() {
-                    // Remove active class from all images
-                    document.querySelectorAll('.overlay-image').forEach(img => img.classList.remove('active'));
-                    // Add active class to the clicked image
-                    this.classList.add('active');
-                    // Update overlayImage src
-                    overlayImage.src = this.getAttribute('data-image');
-                });
-            });
+      return new Promise((resolve) => {
+        video.onloadedmetadata = () => {
+          resolve(video);
         };
+      });
+    }
 
-        // Función para cargar el modelo de detección de puntos de referencia faciales
-        async function loadFaceLandmarksModel() {
-            faceLandmarksModel = await faceLandmarksDetection.load(
-                faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-                { shouldLoadIrisModel: false }
-            );
-        }
+    async function loadBlazePose() {
+      return await blazepose.load();
+    }
 
-        // Función para iniciar el flujo de video desde la cámara
-        function startVideoStream() {
-            if (navigator.mediaDevices.getUserMedia) {
-                const constraints = {
-                    video: true
-                };
+    function getJoyaPosition(pose) {
+      const nose = pose.keypoints.find(point => point.name === 'nose');
+      const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
+      const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
 
-                navigator.mediaDevices.getUserMedia(constraints)
-                    .then(function (stream) {
-                        video.srcObject = stream;
-                        currentStream = stream;
-                        detectFaceLandmarks();
-                    })
-                    .catch(function (error) {
-                        console.error("Error accessing the camera: ", error);
-                    });
-            }
-        }
+      if (nose && leftShoulder && rightShoulder) {
+        const x = nose.x;
+        const y = (leftShoulder.y + rightShoulder.y) / 2;
 
-        // Función para detener el flujo de video
-        function stopVideoStream() {
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-            }
-        }
+        return { x, y };
+      }
 
-        // Función para detectar puntos de referencia faciales y posicionar la imagen superpuesta
-        async function detectFaceLandmarks() {
-            const predictions = await faceLandmarksModel.estimateFaces({
-                input: video
-            });
+      return null;
+    }
 
-            if (predictions.length > 0) {
-                const face = predictions[0].scaledMesh;
+    async function startApp() {
+      const joyaSelector = document.getElementById('joya-selector');
+      joyaImage.src = joyaSelector.value;
 
-                // Aquí deberías calcular la posición y el tamaño adecuados para la imagen superpuesta
-                // basado en los puntos de referencia faciales detectados (como el cuello).
-                // Ejemplo básico para ilustrar el concepto:
+      await setupCamera();
+      const net = await loadBlazePose();
 
-                const neckPoint = face[152]; // Punto correspondiente al cuello
+      video.play();
 
-                if (overlayImage.src && overlayImage.src.length > 0) {
-                    // Calcular la posición y escala de la imagen superpuesta basado en los puntos de referencia detectados
-                    const overlayWidth = currentOverlayWidth * (video.videoWidth / video.offsetWidth); // Ajuste de escala
-                    const overlayX = neckPoint[0] - overlayWidth / 2; // Calcular la posición x
-                    const overlayY = neckPoint[1] - overlayImage.height / 2; // Calcular la posición y (centrar en el cuello)
-
-                    overlayImage.style.left = `${overlayX}px`;
-                    overlayImage.style.top = `${overlayY}px`;
-                    overlayImage.style.width = `${overlayWidth}px`;
-
-                    // Mostrar la imagen superpuesta
-                    overlayImage.style.display = 'block';
-                }
-            } else {
-                // Ocultar la imagen superpuesta si no se detectan caras
-                overlayImage.style.display = 'none';
-            }
-
-            // Continuar detectando los puntos de referencia en cada cuadro de video
-            requestAnimationFrame(detectFaceLandmarks);
-        }
-
-        // Manejar clic en "Tomar Foto" para guardar la imagen
-        document.getElementById('takePhoto').addEventListener('click', function() {
-            if (video) {
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const context = canvas.getContext('2d');
-
-                // Dibujar el cuadro de video
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                // Dibujar la imagen superpuesta si existe
-                if (overlayImage.src && overlayImage.src.length > 0) {
-                    context.drawImage(overlayImage, parseFloat(overlayImage.style.left), parseFloat(overlayImage.style.top), parseFloat(overlayImage.style.width), overlayImage.height);
-                }
-
-                // Crear enlace de descarga
-                const link = document.createElement('a');
-                link.href = canvas.toDataURL('image/png');
-                link.download = 'photo.png';
-                link.click();
-            }
+      async function detectPose() {
+        const poses = await net.estimatePoses(video, {
+          flipHorizontal: false,
+          decodingMethod: 'single-person'
         });
 
-        // Manejar clic en "Cambiar Cámara" para alternar entre la cámara frontal y trasera
-        document.getElementById('switchCamera').addEventListener('click', function() {
-            stopVideoStream();
-            const constraints = {
-                video: { facingMode: 'user' } // Cambiar a 'environment' para la cámara trasera
-            };
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then(function (stream) {
-                    video.srcObject = stream;
-                    currentStream = stream;
-                    detectFaceLandmarks();
-                })
-                .catch(function (error) {
-                    console.error("Error accessing the camera: ", error);
-                });
-        });
-    </script>
+        ctx.drawImage(video, 0, 0, 640, 480);
+
+        if (poses.length > 0) {
+          const pose = poses[0];
+          const joyaPosition = getJoyaPosition(pose);
+
+          if (joyaPosition) {
+            const neckWidth = Math.abs(pose.keypoints[5].x - pose.keypoints[6].x);
+            const scale = neckWidth / joyaImage.width;
+
+            ctx.save();
+            ctx.translate(joyaPosition.x, joyaPosition.y);
+            ctx.scale(scale, scale);
+            ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
+            ctx.restore();
+          }
+        }
+
+        requestAnimationFrame(detectPose);
+      }
+
+      detectPose();
+    }
+
+    document.getElementById('start-button').addEventListener('click', startApp);
+  </script>
 </body>
 </html>
