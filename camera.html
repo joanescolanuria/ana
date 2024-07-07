@@ -1,10 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+  <meta charset="UTF-8">
   <title>Superponer Joya en Cuello</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazepose"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <style>
+    video, canvas {
+      display: block;
+      margin: auto;
+    }
+  </style>
 </head>
 <body>
   <h1>Superponer Joya en Cuello</h1>
@@ -36,7 +43,8 @@
     }
 
     async function loadBlazePose() {
-      return await blazepose.load();
+      const model = await blazepose.load();
+      return model;
     }
 
     function getJoyaPosition(pose) {
@@ -47,10 +55,8 @@
       if (nose && leftShoulder && rightShoulder) {
         const x = nose.x;
         const y = (leftShoulder.y + rightShoulder.y) / 2;
-
         return { x, y };
       }
-
       return null;
     }
 
@@ -76,7 +82,9 @@
           const joyaPosition = getJoyaPosition(pose);
 
           if (joyaPosition) {
-            const neckWidth = Math.abs(pose.keypoints[5].x - pose.keypoints[6].x);
+            const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
+            const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
+            const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
             const scale = neckWidth / joyaImage.width;
 
             ctx.save();
