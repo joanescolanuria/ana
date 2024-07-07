@@ -69,6 +69,10 @@
     }
 
     function getJoyaPosition(pose) {
+      if (!pose || !pose.keypoints) {
+        return null;
+      }
+
       const nose = pose.keypoints.find(point => point.name === 'nose');
       const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
       const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
