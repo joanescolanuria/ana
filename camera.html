@@ -36,6 +36,7 @@
     let canvas = document.getElementById('canvas');
     let ctx = canvas.getContext('2d');
     let joyaImage = new Image();
+    let selectedJoya = '';
 
     async function setupCamera() {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -58,13 +59,13 @@
     }
 
     function getJoyaPosition(pose) {
-      const nose = pose.keypoints.find(point => point.name === 'nose');
-      const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
-      const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
+      const nose = pose.keypoints.find(point => point.part === 'nose');
+      const leftShoulder = pose.keypoints.find(point => point.part === 'leftShoulder');
+      const rightShoulder = pose.keypoints.find(point => point.part === 'rightShoulder');
 
       if (nose && leftShoulder && rightShoulder) {
-        const x = nose.x;
-        const y = (leftShoulder.y + rightShoulder.y) / 2;
+        const x = nose.position.x;
+        const y = (leftShoulder.position.y + rightShoulder.position.y) / 2;
         return { x, y };
       }
       return null;
@@ -76,44 +77,46 @@
 
       video.play();
 
-      function detectPose() {
-        net.estimatePoses(video, {
+      async function detectPose() {
+        const poses = await net.estimatePoses(video, {
           flipHorizontal: false,
           decodingMethod: 'single-person'
-        }).then(poses => {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-          if (poses.length > 0) {
-            const pose = poses[0];
-            const joyaPosition = getJoyaPosition(pose);
-
-            if (joyaPosition && joyaImage.src) {
-              const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
-              const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
-              const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
-              const scale = neckWidth / joyaImage.width;
-
-              ctx.save();
-              ctx.translate(joyaPosition.x, joyaPosition.y);
-              ctx.scale(scale, scale);
-              ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
-              ctx.restore();
-            }
-          }
-
-          requestAnimationFrame(detectPose);
         });
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        if (poses.length > 0) {
+          const pose = poses[0];
+          const joyaPosition = getJoyaPosition(pose);
+
+          if (joyaPosition && selectedJoya) {
+            const leftShoulder = pose.keypoints.find(point => point.part === 'leftShoulder');
+            const rightShoulder = pose.keypoints.find(point => point.part === 'rightShoulder');
+            const neckWidth = Math.abs(leftShoulder.position.x - rightShoulder.position.x);
+            const scale = neckWidth / joyaImage.width;
+
+            ctx.save();
+            ctx.translate(joyaPosition.x, joyaPosition.y);
+            ctx.scale(scale, scale);
+            ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
+            ctx.restore();
+          }
+        }
+
+        requestAnimationFrame(detectPose);
       }
 
       detectPose();
     }
 
     document.getElementById('joya1').addEventListener('click', () => {
-      joyaImage.src = 'imagen.png';
+      selectedJoya = 'imagen.png';
+      joyaImage.src = selectedJoya;
     });
 
     document.getElementById('joya2').addEventListener('click', () => {
-      joyaImage.src = 'imagen3.png';
+      selectedJoya = 'imagen3.png';
+      joyaImage.src = selectedJoya;
     });
 
     startApp();
