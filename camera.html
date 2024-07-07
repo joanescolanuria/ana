@@ -11,17 +11,25 @@
       display: block;
       margin: auto;
     }
+    .joya-img {
+      width: 100px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    .joyas-container {
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <h1>Superponer Joya en Cuello</h1>
-  <select id="joya-selector">
-    <option value="imagen1.png">Joya 1</option>
-    <option value="imagen2.png">Joya 2</option>
-  </select>
-  <button id="start-button">Iniciar</button>
   <video id="video" width="640" height="480" autoplay playsinline></video>
   <canvas id="canvas" width="640" height="480"></canvas>
+  
+  <div class="joyas-container">
+    <img src="imagen.png" class="joya-img" id="joya1" alt="Joya 1">
+    <img src="imagen3.png" class="joya-img" id="joya2" alt="Joya 2">
+  </div>
 
   <script>
     let video = document.getElementById('video');
@@ -63,55 +71,52 @@
     }
 
     async function startApp() {
-      const joyaSelector = document.getElementById('joya-selector');
-      joyaImage.src = joyaSelector.value;
-
       await setupCamera();
       const net = await loadBlazePose();
 
       video.play();
 
-      joyaSelector.addEventListener('change', () => {
-        joyaImage.src = joyaSelector.value;
-      });
-
-      async function detectPose() {
-        const poses = await net.estimatePoses(video, {
+      function detectPose() {
+        net.estimatePoses(video, {
           flipHorizontal: false,
           decodingMethod: 'single-person'
-        });
+        }).then(poses => {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          if (poses.length > 0) {
+            const pose = poses[0];
+            const joyaPosition = getJoyaPosition(pose);
 
-        if (poses.length > 0) {
-          const pose = poses[0];
-          const joyaPosition = getJoyaPosition(pose);
+            if (joyaPosition && joyaImage.src) {
+              const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
+              const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
+              const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
+              const scale = neckWidth / joyaImage.width;
 
-          if (joyaPosition) {
-            const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
-            const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
-            const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
-            const scale = neckWidth / joyaImage.width;
-
-            ctx.save();
-            ctx.translate(joyaPosition.x, joyaPosition.y);
-            ctx.scale(scale, scale);
-            ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
-            ctx.restore();
+              ctx.save();
+              ctx.translate(joyaPosition.x, joyaPosition.y);
+              ctx.scale(scale, scale);
+              ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
+              ctx.restore();
+            }
           }
-        }
 
-        requestAnimationFrame(detectPose);
-      }
-
-      joyaImage.onload = () => {
-        detectPose();
+          requestAnimationFrame(detectPose);
+        });
       }
 
       detectPose();
     }
 
-    document.getElementById('start-button').addEventListener('click', startApp);
+    document.getElementById('joya1').addEventListener('click', () => {
+      joyaImage.src = 'imagen.png';
+    });
+
+    document.getElementById('joya2').addEventListener('click', () => {
+      joyaImage.src = 'imagen3.png';
+    });
+
+    startApp();
   </script>
 </body>
 </html>
