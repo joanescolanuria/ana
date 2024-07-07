@@ -64,41 +64,47 @@
       const joyaSelector = document.getElementById('joya-selector');
       joyaImage.src = joyaSelector.value;
 
-      await setupCamera();
-      const net = await loadBlazePose();
+      joyaImage.onload = async () => {
+        await setupCamera();
+        const net = await loadBlazePose();
 
-      video.play();
+        video.play();
 
-      async function detectPose() {
-        const poses = await net.estimatePoses(video, {
-          flipHorizontal: false,
-          decodingMethod: 'single-person'
-        });
+        async function detectPose() {
+          const poses = await net.estimatePoses(video, {
+            flipHorizontal: false,
+            decodingMethod: 'single-person'
+          });
 
-        ctx.drawImage(video, 0, 0, 640, 480);
+          ctx.drawImage(video, 0, 0, 640, 480);
 
-        if (poses.length > 0) {
-          const pose = poses[0];
-          const joyaPosition = getJoyaPosition(pose);
+          if (poses.length > 0) {
+            const pose = poses[0];
+            const joyaPosition = getJoyaPosition(pose);
 
-          if (joyaPosition) {
-            const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
-            const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
-            const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
-            const scale = neckWidth / joyaImage.width;
+            if (joyaPosition) {
+              const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
+              const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
+              const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
+              const scale = neckWidth / joyaImage.width;
 
-            ctx.save();
-            ctx.translate(joyaPosition.x, joyaPosition.y);
-            ctx.scale(scale, scale);
-            ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
-            ctx.restore();
+              ctx.save();
+              ctx.translate(joyaPosition.x, joyaPosition.y);
+              ctx.scale(scale, scale);
+              ctx.drawImage(joyaImage, -joyaImage.width / 2, 0);
+              ctx.restore();
+            }
           }
+
+          requestAnimationFrame(detectPose);
         }
 
-        requestAnimationFrame(detectPose);
-      }
+        detectPose();
+      };
 
-      detectPose();
+      joyaImage.onerror = () => {
+        console.error('Error al cargar la imagen de la joya');
+      };
     }
 
     document.getElementById('start-button').addEventListener('click', startApp);
