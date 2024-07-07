@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Superponer Joya en Cuello</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazepose"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
   <style>
     video, canvas {
@@ -58,7 +58,10 @@
 
     async function loadBlazePose() {
       try {
-        const model = await blazepose.load();
+        const model = await poseDetection.createDetector(poseDetection.SupportedModels.BlazePose, {
+          runtime: 'tfjs',
+          modelType: 'full'
+        });
         return model;
       } catch (error) {
         console.error('Error cargando el modelo BlazePose: ', error);
@@ -66,13 +69,13 @@
     }
 
     function getJoyaPosition(pose) {
-      const nose = pose.keypoints.find(point => point.part === 'nose');
-      const leftShoulder = pose.keypoints.find(point => point.part === 'leftShoulder');
-      const rightShoulder = pose.keypoints.find(point => point.part === 'rightShoulder');
+      const nose = pose.keypoints.find(point => point.name === 'nose');
+      const leftShoulder = pose.keypoints.find(point => point.name === 'left_shoulder');
+      const rightShoulder = pose.keypoints.find(point => point.name === 'right_shoulder');
 
       if (nose && leftShoulder && rightShoulder) {
-        const x = nose.position.x;
-        const y = (leftShoulder.position.y + rightShoulder.position.y) / 2;
+        const x = nose.x;
+        const y = (leftShoulder.y + rightShoulder.y) / 2;
         return { x, y };
       }
       return null;
@@ -102,9 +105,9 @@
           const joyaPosition = getJoyaPosition(pose);
 
           if (joyaPosition && selectedJoya) {
-            const leftShoulder = pose.keypoints.find(point => point.part === 'leftShoulder');
-            const rightShoulder = pose.keypoints.find(point => point.part === 'rightShoulder');
-            const neckWidth = Math.abs(leftShoulder.position.x - rightShoulder.position.x);
+            const leftShoulder = pose.keypoints.find(point => point.part === 'left_shoulder');
+            const rightShoulder = pose.keypoints.find(point => point.part === 'right_shoulder');
+            const neckWidth = Math.abs(leftShoulder.x - rightShoulder.x);
             const scale = neckWidth / joyaImage.width;
 
             ctx.save();
