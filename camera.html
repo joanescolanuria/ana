@@ -39,23 +39,30 @@
     let selectedJoya = '';
 
     async function setupCamera() {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'user'
-        }
-      });
-      video.srcObject = stream;
-
-      return new Promise((resolve) => {
-        video.onloadedmetadata = () => {
-          resolve(video);
-        };
-      });
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'user'
+          }
+        });
+        video.srcObject = stream;
+        return new Promise((resolve) => {
+          video.onloadedmetadata = () => {
+            resolve(video);
+          };
+        });
+      } catch (error) {
+        console.error('Error accediendo a la cámara: ', error);
+      }
     }
 
     async function loadBlazePose() {
-      const model = await blazepose.load();
-      return model;
+      try {
+        const model = await blazepose.load();
+        return model;
+      } catch (error) {
+        console.error('Error cargando el modelo BlazePose: ', error);
+      }
     }
 
     function getJoyaPosition(pose) {
@@ -74,6 +81,11 @@
     async function startApp() {
       await setupCamera();
       const net = await loadBlazePose();
+
+      if (!net) {
+        console.error('No se pudo cargar el modelo BlazePose');
+        return;
+      }
 
       video.play();
 
@@ -112,12 +124,22 @@
     document.getElementById('joya1').addEventListener('click', () => {
       selectedJoya = 'imagen.png';
       joyaImage.src = selectedJoya;
+      console.log('Joya 1 seleccionada');
     });
 
     document.getElementById('joya2').addEventListener('click', () => {
       selectedJoya = 'imagen3.png';
       joyaImage.src = selectedJoya;
+      console.log('Joya 2 seleccionada');
     });
+
+    joyaImage.onload = () => {
+      console.log('Imagen de joya cargada: ', selectedJoya);
+    };
+
+    joyaImage.onerror = (error) => {
+      console.error('Error cargando la imagen de joya: ', error);
+    };
 
     startApp();
   </script>
